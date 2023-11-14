@@ -36,7 +36,7 @@ setup(
             name="awq_inference_engine",
             sources=[
                 "csrc/pybind.cpp", 
-                "csrc/quantization/gemm_cuda_gen.cu",
+                # "csrc/quantization/gemm_cuda_gen.cu",
                 "csrc/quantization/gemv_cuda.cu",
                 "csrc/layernorm/layernorm.cu",
                 "csrc/position_embedding/pos_encoding_kernels.cu",

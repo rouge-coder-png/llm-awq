@@ -37,41 +37,55 @@ class QuantLlamaMLP(nn.Module):
         out_shape = x.shape[:-1] + (self.intermediate_size,)
         x = x.reshape(-1, x.shape[-1])
 
-        if x.shape[0] <= 8:
-            gate_output = awq_inference_engine.gemv_forward_cuda(
+        # if x.shape[0] <= 8:
+        #     gate_output = awq_inference_engine.gemv_forward_cuda(
+        #         x,
+        #         self.gate_proj_qweight,
+        #         self.gate_proj_scales,
+        #         self.gate_proj_qzeros,
+        #         self.down_proj.group_size,
+        #     )
+        #     gate_output = F.silu(gate_output)
+        #     up_output = awq_inference_engine.gemv_forward_cuda(
+        #         x,
+        #         self.up_proj_qweight,
+        #         self.up_proj_scales,
+        #         self.up_proj_qzeros,
+        #         self.down_proj.group_size,
+        #     )
+        # else:
+        #     gate_output = awq_inference_engine.gemm_forward_cuda(
+        #         x,
+        #         self.gate_proj_qweight,
+        #         self.gate_proj_scales,
+        #         self.gate_proj_qzeros,
+        #         self.down_proj.group_size,
+        #         self.split_k_iters,
+        #     )
+        #     gate_output = F.silu(gate_output)
+        #     up_output = awq_inference_engine.gemm_forward_cuda(
+        #         x,
+        #         self.up_proj_qweight,
+        #         self.up_proj_scales,
+        #         self.up_proj_qzeros,
+        #         self.down_proj.group_size,
+        #         self.split_k_iters,
+        #     )
+        gate_output = awq_inference_engine.gemv_forward_cuda(
                 x,
                 self.gate_proj_qweight,
                 self.gate_proj_scales,
                 self.gate_proj_qzeros,
                 self.down_proj.group_size,
             )
-            gate_output = F.silu(gate_output)
-            up_output = awq_inference_engine.gemv_forward_cuda(
+        gate_output = F.silu(gate_output)
+        up_output = awq_inference_engine.gemv_forward_cuda(
                 x,
                 self.up_proj_qweight,
                 self.up_proj_scales,
                 self.up_proj_qzeros,
                 self.down_proj.group_size,
             )
-        else:
-            gate_output = awq_inference_engine.gemm_forward_cuda(
-                x,
-                self.gate_proj_qweight,
-                self.gate_proj_scales,
-                self.gate_proj_qzeros,
-                self.down_proj.group_size,
-                self.split_k_iters,
-            )
-            gate_output = F.silu(gate_output)
-            up_output = awq_inference_engine.gemm_forward_cuda(
-                x,
-                self.up_proj_qweight,
-                self.up_proj_scales,
-                self.up_proj_qzeros,
-                self.down_proj.group_size,
-                self.split_k_iters,
-            )
-
         c = gate_output * up_output
         c = c.reshape(out_shape)
         return c
